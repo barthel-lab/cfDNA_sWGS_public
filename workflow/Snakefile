@@ -1,0 +1,25 @@
+include: "rules/common.smk"
+include: "rules/BQSR_bam.smk"
+
+rule all:
+	input:
+		############### FASTQ --> BAM files
+		expand(base_path + "{study_id}/umi-fgbio/ExtractUmis/{sampleid}/{sampleid}_processed.p1.fastq.gz", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/ExtractUmis/{sampleid}/{sampleid}_processed.p2.fastq.gz", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/fastq_to_ubam/{sampleid}.unmapped.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/align/{sampleid}.mapped.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/align/{sampleid}/{sampleid}.grouped.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/align/{sampleid}/{sampleid}.grouped-family-sizes.txt", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/call_consensus_reads/{sampleid}/{sampleid}.cons.unmapped.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/realign_consensus_reads/{sampleid}/{sampleid}.cons.mapped.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/QC/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/QC/{sampleid}_CollectAlignmentSummaryMetrics.txt", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/QC/{sampleid}/{sampleid}.cons.mapped.sorted_fastqc.html", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/QC/{sampleid}_CollectInsertSizeMetrics.txt", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/QC/{sampleid}_CollectInsertSizeMetrics.pdf", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.srt.cons.mapped.sorted.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/QC/{sampleid}_collect_wgs_metrics.txt", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/readGroups/{sampleid}/{sampleid}_RG_hg38.bam", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/BQSR/{sampleid}/{sampleid}_recall.table", study_id = patients, sampleid=sample),
+		expand(base_path + "{study_id}/umi-fgbio/BQSR/{sampleid}/{sampleid}_BQSR_hg38.bam", study_id = patients, sampleid=sample),

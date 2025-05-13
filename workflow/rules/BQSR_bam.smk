@@ -1,16 +1,3 @@
-# rule rename_fastq:
-# 	input:
-# 		r1 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[5],
-# 		r2 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[6]
-# 	params:
-# 		study_id = "{study_id}"
-# 	output:
-# 		new_r1 = base_path + "{study_id}/fastq/{sampleid}_R1.fastq.gz",
-# 		new_r2 = base_path + "{study_id}/fastq/{sampleid}_R2.fastq.gz"
-# 	script:
-# 		"/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/rename_fastq.py" 
-
-
 # Step 1.1: Remove empty reads : only keeps reads that have more than 7 bases
 rule RemoveEmptyReads:
 	input:
@@ -393,7 +380,6 @@ rule multiplemetrics:
 rule CollectWgsMetrics:
 	input:
 		bam = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam",
-		#bam = labs_dir + "BQSR/{sampleid}/{sampleid}_BQSR_hg38.bam",
 		fasta = hg38
 	output:
 		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt"

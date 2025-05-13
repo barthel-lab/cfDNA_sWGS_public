@@ -1,28 +1,26 @@
 include: "rules/common.smk"
 include: "rules/BQSR_bam.smk"
 include: "rules/ichorCNA.smk"
+include: "rules/variant_calling.smk"
 
 rule all:
 	input:
 		############### FASTQ --> BAM files
 		expand(base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		############### BAM processing QC 
-		expand(base_path + "{study_id}/bam_processing/QC/{sampleid}.rawWGSmetrics.mapped_grouped.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.grouped-family-sizes.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		expand(base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# ############### BAM processing QC 
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# ############## ICHORCNA PIPELINE
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.cna.seg", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		################ variant calling for WGS data - multisample
-		# expand(base_path +  "{study_id}/mutect2/{patient_id}/{patient_id}_anno.vcf.gz",study_id = study, patient_id = patient, gDNA = gDNA),
-		################ variant calling for WGS data - single sample
+		expand(base_path +  "{study_id}/mutect2/{patient_id}/{patient_id}_anno.vcf.gz", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		################ cfDNAkit pipeline
 
 

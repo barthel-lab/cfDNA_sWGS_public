@@ -1,17 +1,17 @@
 rule multisample_mutect2:
 	input:
-		normal = base_path + "{study_id}/bam_processing/BQSR/{patient_id}_PBMC/{patient_id}_PBMC_BQSR_hg38.bam",
+		normal = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{patient_id}_PBMC_BQSR_hg38.bam",
 		germ = germline,
 		fasta = hg38,
 		pon = nPON,
 		vcf = hotspot_file
 	params:
 		patient = "{patient_id}",
-        sample = lambda wildcards: " ".join(
-            f"-I {base_path}{s_id}/bam_processing/BQSR/{p_id}/{sample_id}_BQSR_hg38.bam"
-            for s_id, p_id, sample_id in zip(study_list, patient_list, sample_list)
-            if p_id == wildcards.patient_id and s_id == wildcards.study_id
-        )
+		sample = lambda wildcards: " ".join(
+			f"-I {base_path}{s_id}/bam_processing/BQSR/{p_id}/{sample_id}_BQSR_hg38.bam"
+			for s_id, p_id, sample_id in zip(study_list, patient_list, sample_list)
+			if p_id == wildcards.patient_id and s_id == wildcards.study_id
+		)
 	output:
 		vcf = base_path + "{study_id}/mutect2/{patient_id}/{patient_id}_multisample.vcf.gz",
 		f1r2=base_path + "{study_id}/mutect2/{patient_id}/{patient_id}_multisample_f1r2.tar.gz"
@@ -100,8 +100,10 @@ rule FilterMutectCalls:
 		vcf=base_path + "{study_id}/mutect2/{patient_id}/{patient_id}_multisample.vcf.gz",
 		fasta = hg38
 	params:
-		contam = lambda wildcards: " ".join(f"--contamination-table {base_path}/{wildcards.study_id}/CalculateContamination/{wildcards.patient_id}/{wildcards.patient_id}_{gDNA}_contamination.txt" for gDNA in gDNA),
-		seg = lambda wildcards: " ".join(f"--tumor-segmentation {base_path}/{wildcards.study_id}/CalculateContamination/{wildcards.patient_id}/{wildcards.patient_id}_{gDNA}_segmentation.tsv" for gDNA in gDNA)
+		contam = lambda wildcards: " ".join(f"--contamination-table {base_path}/{s_id}/CalculateContamination/{p_id}/{sample_id}_contamination.txt" for s_id, p_id, sample_id in zip(study_list, patient_list, sample_list)
+			if p_id == wildcards.patient_id and s_id == wildcards.study_id),
+		seg = lambda wildcards: " ".join(f"--tumor-segmentation {base_path}/{s_id}/CalculateContamination/{p_id}/{sample_id}_segmentation.tsv" for s_id, p_id, sample_id in zip(study_list, patient_list, sample_list)
+			if p_id == wildcards.patient_id and s_id == wildcards.study_id)
 	output:
 		base_path +  "{study_id}/mutect2/{patient_id}/{patient_id}_filtered.vcf.gz"
 	threads:

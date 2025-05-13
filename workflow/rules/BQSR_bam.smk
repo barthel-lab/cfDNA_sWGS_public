@@ -1,36 +1,50 @@
-# Step 1.1: Remove empty reads
+# rule rename_fastq:
+# 	input:
+# 		r1 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[5],
+# 		r2 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[6]
+# 	params:
+# 		study_id = "{study_id}"
+# 	output:
+# 		new_r1 = base_path + "{study_id}/fastq/{sampleid}_R1.fastq.gz",
+# 		new_r2 = base_path + "{study_id}/fastq/{sampleid}_R2.fastq.gz"
+# 	script:
+# 		"/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/rename_fastq.py" 
+
+
+# Step 1.1: Remove empty reads : only keeps reads that have more than 7 bases
 rule RemoveEmptyReads:
 	input:
-		f1 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[2],
-		f2 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[3]
+		f1 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[3],
+		f2 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[4]
 	output:
-		p1 = base_path + "{study_id}/umi-fgbio/ExtractUmis/{sampleid}/{sampleid}_processed.p1.fastq.gz",
-		p2 = base_path + "{study_id}/umi-fgbio/ExtractUmis/{sampleid}/{sampleid}_processed.p2.fastq.gz"
+		p1 = base_path + "{study_id}/bam_processing/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
+		p2 = base_path + "{study_id}/bam_processing/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz"
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/ExtractUmis/{sampleid}.cutadapt.log"
+		base_path + "{study_id}/bam_processing/logs/ExtractUmis/{patient_id}/{sampleid}.cutadapt.log"
 	shell:
 		"""
 			cutadapt -m 7 -o {output.p1} -p {output.p2} {input.f1} {input.f2} \
 				2> {log}
 		"""
 
-# Step 1.2: FASTQ -> uBam
+
+# Step 1.2: FASTQ -> uBam 5M (5 bases for UMI) + 2S (2 bases for spacer) T (rest is DNA sequence)
 rule fastq_to_ubam:
 	"""Generates a uBam from R1 and R2 fastq files."""
 	input:
-		r1 = base_path + "{study_id}/umi-fgbio/ExtractUmis/{sampleid}/{sampleid}_processed.p1.fastq.gz",
-		r2 = base_path + "{study_id}/umi-fgbio/ExtractUmis/{sampleid}/{sampleid}_processed.p2.fastq.gz"
+		r1 = base_path + "{study_id}/bam_processing/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
+		r2 = base_path + "{study_id}/bam_processing/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz"
 	params:
 		rs1 = "5M2S+T",
 		rs2 = "5M2S+T",
 		lane = "L001",
 		sampleName = "{sampleid}"
 	output:
-		bam = base_path + "{study_id}/umi-fgbio/fastq_to_ubam/{sampleid}.unmapped.bam"
+		bam = base_path + "{study_id}/bam_processing/fastq_to_ubam/{patient_id}/{sampleid}.unmapped.bam"
 	resources:
 		mem_gb = 1
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/fastq_to_ubam/{sampleid}.log"
+		base_path + "{study_id}/bam_processing/logs/fastq_to_ubam/{patient_id}/{sampleid}.log"
 	shell:
 		"""
 			fgbio --compression 1 --async-io FastqToBam \
@@ -47,16 +61,16 @@ rule fastq_to_ubam:
 rule align_bam:
 	"""Takes an unmapped BAM and generates an aligned BAM using bwa and ZipperBams."""
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/fastq_to_ubam/{sampleid}.unmapped.bam",
+		bam = base_path + "{study_id}/bam_processing/fastq_to_ubam/{patient_id}/{sampleid}.unmapped.bam",
 		fasta = hg38
 	output:
-		bam = base_path + "{study_id}/umi-fgbio/align/{sampleid}.mapped.bam"
+		bam = base_path + "{study_id}/bam_processing/align/{patient_id}/{sampleid}.mapped.bam"
 	threads:
 		16
 	resources:
 		mem_gb = 14
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/align_bam/{sampleid}.log"
+		base_path + "{study_id}/bam_processing/logs/align_bam/{patient_id}/{sampleid}.log"
 	shell:
 		"""
 			(samtools fastq {input.bam} \
@@ -67,15 +81,14 @@ rule align_bam:
 				--output {output.bam} \
 				&> {log})
 		"""
-
-# Step 1.4: Mapped BAM -> Grouped BAM
+# Step 1.4: Mapped BAM -> Grouped BAM  **deduplication step**
 rule group_reads:
 	"""Group the raw reads by UMI and position ready for consensus calling."""
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/align/{sampleid}.mapped.bam",
+		bam = base_path + "{study_id}/bam_processing/align/{patient_id}/{sampleid}.mapped.bam",
 	output:
-		bam = base_path + "{study_id}/umi-fgbio/align/{sampleid}/{sampleid}.grouped.bam",
-		stats = base_path + "{study_id}/umi-fgbio/align/{sampleid}/{sampleid}.grouped-family-sizes.txt"
+		bam = base_path + "{study_id}/bam_processing/align/{patient_id}/{sampleid}.grouped.bam",
+		stats = base_path + "{study_id}/bam_processing/align/{patient_id}/{sampleid}.grouped-family-sizes.txt"
 	params:
 		allowed_edits = 1,
 	threads:
@@ -83,7 +96,7 @@ rule group_reads:
 	resources:
 		mem_gb = 8
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/group_reads/{sampleid}.log"
+		base_path + "{study_id}/bam_processing/logs/group_reads/{patient_id}/{sampleid}.log"
 	shell:
 		"""
 			fgbio --compression 1 --async-io GroupReadsByUmi \
@@ -105,9 +118,9 @@ rule group_reads:
 rule call_consensus_reads:
 	"""Call consensus reads from the grouped reads."""
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/align/{sampleid}/{sampleid}.grouped.bam",
+		bam = base_path + "{study_id}/bam_processing/align/{patient_id}/{sampleid}.grouped.bam",
 	output:
-		bam = base_path + "{study_id}/umi-fgbio/call_consensus_reads/{sampleid}/{sampleid}.cons.unmapped.bam"
+		bam = base_path + "{study_id}/bam_processing/call_consensus_reads/{patient_id}/{sampleid}.cons.unmapped.bam"
 	params:
 		min_reads = 1,
 		min_base_qual = 10
@@ -116,7 +129,7 @@ rule call_consensus_reads:
 	resources:
 		mem_gb = 8
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/call_consensus_reads/{sampleid}.log"
+		base_path + "{study_id}/bam_processing/logs/call_consensus_reads/{patient_id}/{sampleid}.log"
 	shell:
 		"""
 			fgbio --compression 1 CallMolecularConsensusReads \
@@ -134,16 +147,16 @@ rule call_consensus_reads:
 # Step 2(a).2: Consensus uBam -> Consensus Mapped BAM
 rule realign_consensus_reads:
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/call_consensus_reads/{sampleid}/{sampleid}.cons.unmapped.bam",
+		bam = base_path + "{study_id}/bam_processing/call_consensus_reads/{patient_id}/{sampleid}.cons.unmapped.bam",
 		fasta = hg38
 	output:
-		bam = base_path + "{study_id}/umi-fgbio/realign_consensus_reads/{sampleid}/{sampleid}.cons.mapped.bam"
+		bam = base_path + "{study_id}/bam_processing/realign_consensus_reads/{patient_id}/{sampleid}.cons.mapped.bam"
 	resources:
 		mem_gb = 4
 	threads:
 		16
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/realign_consensus_reads/{sampleid}.log"
+		base_path + "{study_id}/bam_processing/logs/realign_consensus_reads/{patient_id}/{sampleid}.log"
 	shell:
 		"""
 			samtools fastq {input.bam} \
@@ -156,15 +169,14 @@ rule realign_consensus_reads:
 				--output {output.bam} &> {log}
 		"""
 
-
 # Step 2(a).3: Consensus Mapped -> Consensus Filtered & Sorted BAM
 rule sort_consensus_reads:
 	"""Sorts consensus reads into coordinate order."""
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/realign_consensus_reads/{sampleid}/{sampleid}.cons.mapped.bam",
+		bam = base_path + "{study_id}/bam_processing/realign_consensus_reads/{patient_id}/{sampleid}.cons.mapped.bam",
 		fasta = hg38
 	output:
-		bam = base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam"
+		bam = base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.cons.mapped.sorted.bam"
 	params:
 		min_reads = 1,
 		min_base_qual = 40,
@@ -174,106 +186,18 @@ rule sort_consensus_reads:
 	resources:
 		mem_gb = 8
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/filter_consensus_reads/{sampleid}.log"
+		base_path + "{study_id}/bam_processing/logs/filter_consensus_reads/{patient_id}/{sampleid}.log"
 	shell:
 		"""
 			(samtools sort --threads {threads} {input.bam} \
 				-o {output.bam}) &> {log}
 		"""
 
-
-rule CollectDuplicateMetrics:
-	input:
-		base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam"
-	output:
-		base_path + "{study_id}/umi-fgbio/QC/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt"
-	log:
-		base_path + "{study_id}/umi-fgbio/logs/QC/mapped_grouped_{sampleid}CollectDuplicateMetrics.log"
-	shell:
-		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectDuplicateMetrics \
-				--INPUT {input} \
-				--METRICS_FILE {output} > {log} 2>&1
-		"""
-
-rule CollectAlignmentSummaryMetrics:
-	input:
-		bam = base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam",
-		fasta = hg38
-	output:
-		base_path + "{study_id}/umi-fgbio/QC/{sampleid}_CollectAlignmentSummaryMetrics.txt"
-	log:
-		base_path + "{study_id}/umi-fgbio/logs/QC/{sampleid}_CollectAlignmentSummaryMetrics.log"
-	resources:
-		mem_mb = 20000
-	shell:
-		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectAlignmentSummaryMetrics \
-				-R {input.fasta} \
-				-I {input.bam} \
-				-O {output} \
-				> {log} 2>&1
-		"""
-
-rule fastqc:
-	input:
-		base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam"
-	output:
-		base_path + "{study_id}/umi-fgbio/QC/{sampleid}/{sampleid}.cons.mapped.sorted_fastqc.html"
-	params:
-		dir = base_path + "{study_id}/umi-fgbio/QC/{sampleid}"
-	log:
-		base_path + "{study_id}/umi-fgbio/logs/fastqc/{sampleid}_grouped_fastqc.log"
-	shell:
-		"""
-			#module add fastqc/0.11.8
-			fastqc \
-				--extract \
-				-o {params.dir} \
-				-f bam \
-				{input} \
-				> {log} 2>&1
-		"""
-
-rule CollectInsertSizeMetrics:
-	input:
-		base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam"
-	output:
-		metrics = base_path + "{study_id}/umi-fgbio/QC/{sampleid}_CollectInsertSizeMetrics.txt",
-		pdf = base_path + "{study_id}/umi-fgbio/QC/{sampleid}_CollectInsertSizeMetrics.pdf"
-	log:
-		base_path + "{study_id}/umi-fgbio/logs/QC/mapped_grouped_{sampleid}_CollectInsertSizeMetrics.log"
-	shell:
-		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectInsertSizeMetrics \
-				I={input} O={output.metrics} \
-				H={output.pdf} M=0.5 \
-				> {log} 2>&1
-		"""
-
-rule multiplemetrics:
-	input:
-		bam = base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam",
-		fasta = hg38
-	output:
-		base_path + "{study_id}/umi-fgbio/QC/{sampleid}.alignment_summary_metrics.txt"
-	log:
-		base_path + "{study_id}/umi-fgbio/logs/multiplemetrics/{sampleid}.MultipleMetrics.log"
-	message:
-		"Computing Multiple Metrics\n"
-		"Sample: {wildcards.sampleid}"
-	shell:
-		"""gatk --java-options -Xmx6g CollectMultipleMetrics \
-			-R {input.fasta} \
-			-I {input.bam} \
-			-O {output} \
-			> {log} 2>&1"""
-
 rule indexBAM:
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.cons.mapped.sorted.bam"
+		bam = base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.cons.mapped.sorted.bam"
 	output:
-		sort = base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.srt.cons.mapped.sorted.bam"
+		sort = base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.srt.cons.mapped.sorted.bam"
 	threads: 8
 	shell:
 		"""
@@ -281,28 +205,13 @@ rule indexBAM:
 			samtools index {output.sort}
 		"""
 
-rule CollectWgsMetrics:
-	input:
-		bam = base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.srt.cons.mapped.sorted.bam",
-		fasta = hg38
-	output:
-		metrics = base_path + "{study_id}/umi-fgbio/QC/{sampleid}_collect_wgs_metrics.txt"
-	log:
-		base_path + "{study_id}/umi-fgbio/s/DepthOfCoverage/{sampleid}.CollectWgsMetrics.log"
-	shell:
-		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectWgsMetrics \
-				-I {input.bam} -O {output.metrics} \
-				-R {input.fasta} > {log} 2>&1
-		"""
-
 rule addReadGroups:
 	input:
-		base_path + "{study_id}/umi-fgbio/sort_consensus_reads/{sampleid}/{sampleid}.srt.cons.mapped.sorted.bam"
+		base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.srt.cons.mapped.sorted.bam"
 	output:
-		base_path + "{study_id}/umi-fgbio/readGroups/{sampleid}/{sampleid}_RG_hg38.bam"
+		base_path + "{study_id}/bam_processing/readGroups/{patient_id}/{sampleid}_RG_hg38.bam"
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/readGroups/{sampleid}_RG.log"
+		base_path + "{study_id}/bam_processing/logs/readGroups/{patient_id}/{sampleid}_RG.log"
 	message:
 		"Adding RG information in sample {wildcards.sampleid}."
 	params:
@@ -320,15 +229,15 @@ rule addReadGroups:
 
 rule BQSR:
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/readGroups/{sampleid}/{sampleid}_RG_hg38.bam",
+		bam = base_path + "{study_id}/bam_processing/readGroups/{patient_id}/{sampleid}_RG_hg38.bam",
 		fasta = hg38,
 		dbsnp = vcf
 	output:
-		base_path + "{study_id}/umi-fgbio/BQSR/{sampleid}/{sampleid}_recall.table"
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_recall.table"
 	message:
 		"Running BaseRecalibrator for {wildcards.sampleid}."
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/BQSR/{sampleid}_recal.table.log"
+		base_path + "{study_id}/bam_processing/logs/BQSR/{patient_id}/{sampleid}_recal.table.log"
 	resources:
 		mem_mb = 80000
 	shell:
@@ -340,14 +249,14 @@ rule BQSR:
 			-O {output} > {log} 2>&1"""
 
 
-# gather BQSR reports
+# gather BQSR reports NOT CURRENTLY INCLUDED IN SNAKEFILE. DOES NOT RUN
 rule GatherBQSRReports:
 	input:
-		base_path + "{study_id}/umi-fgbio/BQSR/{sampleid}/{sampleid}_recall.table"
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_recall.table"
 	output:
-		base_path + "{study_id}/umi-fgbio/QC/{sampleid}/{sampleid}_recall.data.table"
+		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_recall.data.table"
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/GatherBQSRReports/{sampleid}.GatherBQSRReports.log"
+		base_path + "{study_id}/bam_processing/logs/GatherBQSRReports/{patient_id}/{sampleid}.GatherBQSRReports.log"
 	shell:
 		"""
 			gatk GatherBQSRReports \
@@ -358,15 +267,15 @@ rule GatherBQSRReports:
 # apply BQSR
 rule ApplyBQSR:
 	input:
-		bam = base_path + "{study_id}/umi-fgbio/readGroups/{sampleid}/{sampleid}_RG_hg38.bam",
-		table = base_path + "{study_id}/umi-fgbio/BQSR/{sampleid}/{sampleid}_recall.table",
+		bam = base_path + "{study_id}/bam_processing/readGroups/{patient_id}/{sampleid}_RG_hg38.bam",
+		table = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_recall.table",
 		fasta = hg38
 	output:
-		base_path + "{study_id}/umi-fgbio/BQSR/{sampleid}/{sampleid}_BQSR_hg38.bam"
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
 	message:
 		"Applying quality filter in {wildcards.sampleid}."
 	log:
-		base_path + "{study_id}/umi-fgbio/logs/{sampleid}_applyBQSR.bam.log"
+		base_path + "{study_id}/bam_processing/logs/{patient_id}/{sampleid}_applyBQSR.bam.log"
 	resources:
 		mem_mb = 80000
 	shell:
@@ -375,3 +284,154 @@ rule ApplyBQSR:
 			-I {input.bam} \
 			--bqsr-recal-file {input.table} \
 			-O {output} > {log} 2>&1"""
+
+rule BQSR_index:
+	input:
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
+	output:
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam.bai"
+	shell:
+		"samtools index {input}"
+
+
+
+# rule BQSR_Q35:
+# 	input:
+# 		base_path + "{study_id}/bam_processing/BQSR/{sampleid}/{sampleid}_BQSR_hg38.bam"
+# 	output:
+# 		base_path + "{study_id}/bam_processing/BQSR/{sampleid}/{sampleid}_BQSR_Q35.bam"
+# 	shell:
+# 		"samtools view -b -F 0x4 -f 0x2 -q 20 {input} > {output}"
+
+rule CollectDuplicateMetrics:
+	input:
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
+	output:
+		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt"
+	log:
+		base_path + "{study_id}/bam_processing/logs/CollectDuplicateMetrics/{patient_id}/{sampleid}.CollectDuplicateMetrics.log"
+	shell:
+		"""
+			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectDuplicateMetrics \
+				--INPUT {input} \
+				--METRICS_FILE {output} > {log} 2>&1
+		"""
+
+rule CollectAlignmentSummaryMetrics:
+	input:
+		bam = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam",
+		fasta = hg38
+	output:
+		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt"
+	log:
+		base_path + "{study_id}/bam_processing/logs/CollectAlignmentSummaryMetrics/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.log"
+	resources:
+		mem_mb = 20000
+	shell:
+		"""
+			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectAlignmentSummaryMetrics \
+				-R {input.fasta} \
+				-I {input.bam} \
+				-O {output} \
+				> {log} 2>&1
+		"""
+
+rule fastqc:
+	input:
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
+	output:
+		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.cons.mapped.sorted_fastqc.html"
+	params:
+		dir = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}"
+	log:
+		base_path + "{study_id}/bam_processing/logs/fastqc/{patient_id}/{sampleid}_grouped_fastqc.log"
+	shell:
+		"""
+			#module add fastqc/0.11.8
+			fastqc \
+				--extract \
+				-o {params.dir} \
+				-f bam \
+				{input} \
+				> {log} 2>&1
+		"""
+
+rule CollectInsertSizeMetrics:
+	input:
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
+	output:
+		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.txt",
+		pdf = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf"
+	log:
+		base_path + "{study_id}/bam_processing/logs/CollectInsertSizeMetrics/{patient_id}/{sampleid}_CollectInsertSizeMetrics.log"
+	shell:
+		"""
+			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectInsertSizeMetrics \
+				I={input} O={output.metrics} \
+				H={output.pdf} M=0.5 \
+				> {log} 2>&1
+		"""
+
+rule multiplemetrics:
+	input:
+		bam = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam",
+		fasta = hg38
+	output:
+		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.alignment_summary_metrics.txt"
+	log:
+		base_path + "{study_id}/bam_processing/logs/multiplemetrics/{patient_id}/{sampleid}.MultipleMetrics.log"
+	message:
+		"Computing Multiple Metrics\n"
+		"Sample: {wildcards.sampleid}"
+	shell:
+		"""gatk --java-options -Xmx6g CollectMultipleMetrics \
+			-R {input.fasta} \
+			-I {input.bam} \
+			-O {output} \
+			> {log} 2>&1"""
+
+rule CollectWgsMetrics:
+	input:
+		bam = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam",
+		#bam = labs_dir + "BQSR/{sampleid}/{sampleid}_BQSR_hg38.bam",
+		fasta = hg38
+	output:
+		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt"
+	log:
+		base_path + "{study_id}/bam_processing/logs/CollectWgsMetrics/{patient_id}/{sampleid}.CollectWgsMetrics.log"
+	shell:
+		"""
+			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectWgsMetrics \
+				-I {input.bam} -O {output.metrics} \
+				-R {input.fasta} > {log} 2>&1
+		"""
+
+rule CollectQualityYieldMetrics:
+	input:
+		base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
+	output:
+		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt"
+	log:
+		base_path + "{study_id}/bam_processing/logs/CollectQualityYieldMetrics/{patient_id}/{sampleid}.CollectQualityYieldMetrics.log"
+	shell:
+		"""
+		java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectQualityYieldMetrics \
+			-I {input} \
+			--USE_ORIGINAL_QUALITIES true \
+			-O {output} \
+		"""
+
+		
+rule multiqc_report:
+	input:
+		base_path + "{study_id}/bam_processing/QC"
+	output:
+		base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html"
+	params:
+		yaml = "/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/multiqc.yaml"
+	shell:
+		"""
+			cd {input} &&
+			multiqc . -f --config {params.yaml} --outdir {input} --filename {wildcards.study_id}_WGS_report.html
+		"""
+

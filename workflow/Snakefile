@@ -14,7 +14,6 @@ rule all:
 		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# ############## ICHORCNA PIPELINE
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),

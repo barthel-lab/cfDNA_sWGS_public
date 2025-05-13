@@ -206,7 +206,7 @@ rule addReadGroups:
 	resources:
 		mem_mb = 50000
 	shell:
-		"""java -jar /tgen_labs/barthel/software/picard_1.8.jar AddOrReplaceReadGroups \
+		"""java -jar {params.path}/picard_1.8.jar AddOrReplaceReadGroups \
 			-I {input} -O {output} \
 			-PL ILLUMINA -RGLB {params.paramID} --RGID {params.paramID} \
 			-RGPU {params.paramID} -RGSM {params.paramID} \
@@ -299,7 +299,7 @@ rule CollectDuplicateMetrics:
 		base_path + "{study_id}/bam_processing/logs/CollectDuplicateMetrics/{patient_id}/{sampleid}.CollectDuplicateMetrics.log"
 	shell:
 		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectDuplicateMetrics \
+			java -jar {params.path}/picard_1.8.jar CollectDuplicateMetrics \
 				--INPUT {input} \
 				--METRICS_FILE {output} > {log} 2>&1
 		"""
@@ -314,9 +314,11 @@ rule CollectAlignmentSummaryMetrics:
 		base_path + "{study_id}/bam_processing/logs/CollectAlignmentSummaryMetrics/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.log"
 	resources:
 		mem_mb = 20000
+	params:
+		path = picard_path
 	shell:
 		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectAlignmentSummaryMetrics \
+			java -jar {params.path}/picard_1.8.jar CollectAlignmentSummaryMetrics \
 				-R {input.fasta} \
 				-I {input.bam} \
 				-O {output} \
@@ -353,7 +355,7 @@ rule CollectInsertSizeMetrics:
 		base_path + "{study_id}/bam_processing/logs/CollectInsertSizeMetrics/{patient_id}/{sampleid}_CollectInsertSizeMetrics.log"
 	shell:
 		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectInsertSizeMetrics \
+			java -jar {params.path}/picard_1.8.jar CollectInsertSizeMetrics \
 				I={input} O={output.metrics} \
 				H={output.pdf} M=0.5 \
 				> {log} 2>&1
@@ -387,7 +389,7 @@ rule CollectWgsMetrics:
 		base_path + "{study_id}/bam_processing/logs/CollectWgsMetrics/{patient_id}/{sampleid}.CollectWgsMetrics.log"
 	shell:
 		"""
-			java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectWgsMetrics \
+			java -jar {params.path}/picard_1.8.jar CollectWgsMetrics \
 				-I {input.bam} -O {output.metrics} \
 				-R {input.fasta} > {log} 2>&1
 		"""
@@ -401,23 +403,23 @@ rule CollectQualityYieldMetrics:
 		base_path + "{study_id}/bam_processing/logs/CollectQualityYieldMetrics/{patient_id}/{sampleid}.CollectQualityYieldMetrics.log"
 	shell:
 		"""
-		java -jar /tgen_labs/barthel/software/picard_1.8.jar CollectQualityYieldMetrics \
+		java -jar {params.path}/picard_1.8.jar CollectQualityYieldMetrics \
 			-I {input} \
 			--USE_ORIGINAL_QUALITIES true \
 			-O {output} \
 		"""
 
 		
-rule multiqc_report:
-	input:
-		base_path + "{study_id}/bam_processing/QC"
-	output:
-		base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html"
-	params:
-		yaml = "/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/multiqc.yaml"
-	shell:
-		"""
-			cd {input} &&
-			multiqc . -f --config {params.yaml} --outdir {input} --filename {wildcards.study_id}_WGS_report.html
-		"""
+# rule multiqc_report:
+# 	input:
+# 		base_path + "{study_id}/bam_processing/QC"
+# 	output:
+# 		base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html"
+# 	params:
+# 		yaml = "/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/multiqc.yaml"
+# 	shell:
+# 		"""
+# 			cd {input} &&
+# 			multiqc . -f --config {params.yaml} --outdir {input} --filename {wildcards.study_id}_WGS_report.html
+# 		"""
 

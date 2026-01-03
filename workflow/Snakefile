@@ -1,12 +1,13 @@
 include: "rules/common.smk"
-include: "rules/BQSR_bam.smk"
-include: "rules/ichorCNA.smk"
-include: "rules/variant_calling.smk"
+#include: "rules/BQSR_bam.smk"
+#include: "rules/ichorCNA.smk"
+#include: "rules/variant_calling.smk"
+include: "rules/murine_processing.smk"
 
 rule all:
 	input:
 		############### FASTQ --> BAM files
-		expand(base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# ############### BAM processing QC 
 		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
@@ -19,7 +20,10 @@ rule all:
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.cna.seg", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		################ variant calling for WGS data - multisample
-		expand(base_path +  "{study_id}/mutect2/{patient_id}/{patient_id}_anno.vcf.gz", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		################ cfDNAkit pipeline
-
-
+		# expand(base_path +  "{study_id}/mutect2/{patient_id}/{patient_id}_anno.vcf.gz", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		################ murine pipeline
+		# expand(base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.bam", zip, study_id = study_id, patient_id = patient_id, sampleid=all_samples),
+		# expand(base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}_hg38.bam", zip,study_id = study_id, patient_id = patient_id, sampleid=all_samples),
+		# expand(base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.bam", study_id = study_id, patient_id = patient_id, sampleid=all_samples),
+		# expand(base_path + "{study_id}/xenomapper/output/{patient_id}/{sampleid}_primary.bam", zip, study_id = study_id, patient_id = patient_id, sampleid=all_samples)
+		"/scratch/smankame/Murine/xenomapper/output_test/GBMMurine_0009/GBM_VEH_M0_primary_specific.bam"

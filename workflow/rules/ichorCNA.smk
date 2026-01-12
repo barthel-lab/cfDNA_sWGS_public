@@ -1,13 +1,13 @@
 rule wig_files:
 	input:
-		bam = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam"
+		bam = base_path + "{study_id}/xenome/sort_consensus_reads/{patient_id}/{sampleid}.bam"
 	output:
 		wig =  base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig"
 	params:
 		index = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam.bai",
 		window_size = 1000000,
 		quality = 20,
-		chromosomes = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY"
+		chromosomes = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY",
 		path = readCounter_path
 	shell:
 		"""
@@ -39,8 +39,8 @@ rule create_PON:
 rule run_ichorCNA:
 	input:
 		wig = base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig",
-		PON = base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds" 
-		#PON = ichorcna_path+"/inst/extdata/HD_ULP_PoN_1Mb_median_normAutosome_mapScoreFiltered_median.rds"
+		#PON = base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds" 
+		PON = ichorcna_path+ "/inst/extdata/HD_ULP_PoN_1Mb_median_normAutosome_mapScoreFiltered_median.rds"
 	output:
 		base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.cna.seg"
 	params:
@@ -51,8 +51,7 @@ rule run_ichorCNA:
 		sample = "{sampleid}",
 		ichor_path = ichorcna_path
 	script:
-    shell:
-        """
+		"""
 			Rscript {params.ichor_path}/scripts/runIchorCNA.R \
 				--id {params.sample} \
 				--WIG {input.wig} \
@@ -73,4 +72,4 @@ rule run_ichorCNA:
 				--txnE 0.9999999 \
 				--txnStrength 100000000 \
 				--outDir {params.outDir}
-        """
+		"""

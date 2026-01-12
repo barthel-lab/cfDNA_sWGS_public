@@ -13,15 +13,16 @@ picard_path = "/tgen_labs/barthel/software"
 hg38 = "/tgen_labs/barthel/references/GRCh38/hg38_all_viral.fasta"
 vcf = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.dbsnp138.vcf"
 hotspot_file = "/tgen_labs/barthel/references/GRCh38/lifted_hotspot_idh1_tert_grc37.vcf"
-germline = "/tgen_labs/barthel/Portnow_COH/ref/af-only-gnomad.hg38.vcf.gz"
-nPON = "/tgen_labs/barthel/Portnow_COH/ref/xsomatic-hg38_1000g_pon.hg38.vcf"
+germline = "/tgen_labs/barthel/projects/Portnow_COH/ref/af-only-gnomad.hg38.vcf.gz"
+nPON = "/tgen_labs/barthel/projects/Portnow_COH/ref/xsomatic-hg38_1000g_pon.hg38.vcf"
 variant = "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/gnomad/r3.0/gnomad.genomes.r3.0.sites.pass.ForMutectContamination.vcf.gz"
-intervals = "/tgen_labs/barthel/Portnow_COH/ref/resources_broad_hg38_v0_wgs_calling_regions.hg38.interval_list"
+intervals = "/tgen_labs/barthel/projects/Portnow_COH/ref/resources_broad_hg38_v0_wgs_calling_regions.hg38.interval_list"
 fun_lib = "/tgen_labs/barthel/references/GRCh38/funcotator_dataSources.v1.7.20200521s"
 ref = "/tgen_labs/barthel/projects/GBM_Cell_Culture/ref/hg38_mm39.fasta"
 mouse = "/tgen_labs/barthel/projects/GBM_Cell_Culture/ref/mm39.fa"
 human ="/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.fasta"
 
+QC_bam_fp=base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.bam"
 
 ### user makes a csv file where the first column is study name, the second column is sample name and the third and fourth columns are fastq_R1 and fastq_R2 files.
 ### study name (first column) will be used to name the folders and sample name (second column) will be used to name all subsequent files

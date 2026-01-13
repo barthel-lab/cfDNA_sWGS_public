@@ -1,10 +1,10 @@
 rule wig_files:
 	input:
-		bam = base_path + "{study_id}/xenome/sort_consensus_reads/{patient_id}/{sampleid}.bam"
+		bam = base_path + "{study_id}/xenofilteR/{patient_id}/{sampleid}/Filtered_bams/{sampleid}_Filtered.bam"
 	output:
 		wig =  base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig"
 	params:
-		index = base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam.bai",
+		index = base_path + "{study_id}/xenofilteR/{patient_id}/{sampleid}/Filtered_bams/{sampleid}_Filtered.bam.bai",
 		window_size = 1000000,
 		quality = 20,
 		chromosomes = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY",
@@ -20,7 +20,7 @@ rule wig_files:
 
 rule create_PON:
 	input:
-		pbmc = base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC.wig"
+		pbmc = base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig"
 	output:
 		base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds" 
 	params:
@@ -50,12 +50,14 @@ rule run_ichorCNA:
 		centro = ichorcna_path+"/inst/extdata/GRCh38.GCA_000001405.2_centromere_acen.txt",
 		sample = "{sampleid}",
 		ichor_path = ichorcna_path
-	script:
+	log:
+		base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.log"
+	shell:
 		"""
 			Rscript {params.ichor_path}/scripts/runIchorCNA.R \
 				--id {params.sample} \
 				--WIG {input.wig} \
-				--ploidy "c(2,3)" \
+				--ploidy "c(2)" \
 				--normal "c(0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)" \
 				--maxCN 3 \
 				--gcWig {params.gcWig} \
@@ -71,5 +73,5 @@ rule run_ichorCNA:
 				--scStates "c(1)" \
 				--txnE 0.9999999 \
 				--txnStrength 100000000 \
-				--outDir {params.outDir}
+				--outDir {params.outDir} &> {log}
 		"""

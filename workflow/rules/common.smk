@@ -26,7 +26,7 @@ QC_bam_fp=base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_i
 
 ### user makes a csv file where the first column is study name, the second column is sample name and the third and fourth columns are fastq_R1 and fastq_R2 files.
 ### study name (first column) will be used to name the folders and sample name (second column) will be used to name all subsequent files
-sWGS_table = pd.read_csv("/tgen_labs/barthel/projects/GBM_Cell_Culture/scripts/cc_targeted_data_table.txt",sep='\t', header=None, names=["Study", "Patient", "Sample", "R1","R2", "OldName-R1", "OldName-R2", "Library_Type"])
+sWGS_table = pd.read_csv("/tgen_labs/barthel/projects/GBM_Cell_Culture/scripts/cc_targeted_data_table.txt",sep='\t', header=None, names=["Study", "Patient", "Sample", "R1","R2", "OldName-R1", "OldName-R2", "Library_Type", "Tumor"])
 sWGS_table.index = sWGS_table['Sample']
 
 ### if there are multiple studies within the csv table, patient filter will work with specific subsets of samples. Change the study filter value to the patient name. 
@@ -42,4 +42,28 @@ study_list = filtered_sWGS_table['Study'].tolist()
 patient_list = filtered_sWGS_table['Patient'].tolist()
 sample_list = filtered_sWGS_table['Sample'].tolist()
 
-genomes = ["hg38"]*len(all_samples)
+# print(sample_list)
+
+genomes = ["hg38","mm10"]*len(all_samples)
+murine_subset = ["GBMMurine_0010", "GBMMurine_0011"]
+filtered_df = filtered_sWGS_table[filtered_sWGS_table["Patient"].isin(murine_subset)]
+
+# normals = filtered_df[filtered_df["Tumor"] == "Normal"]
+
+# def all_normals_filelist():
+#     """
+#     Collect all normal samples across all patients,
+#     write a filelist for ichorCNA, return the path.
+#     """
+    
+#     if normals.empty:
+#         raise ValueError("No normal samples found in the table!")
+
+#     filelist_path = f"{base_path}all_mouse_normals_PON_filelist.txt"
+
+#     with open(filelist_path, "w") as f:
+#         for _, row in normals.iterrows():
+#             wig_path = f"{base_path}{row['Study']}/ichorcna/{row['Patient']}/{row['Sample']}.wig"
+#             f.write(wig_path + "\n")
+
+#     return filelist_path

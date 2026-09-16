@@ -27,13 +27,9 @@ Calls somatic mutations using GATK Mutect2 in single-sample or multi-sample mode
 - Mutect2 → LearnReadOrientationModel → GetPileupSummaries → CalculateContamination → FilterMutectCalls → Funcotator annotation → VAF extraction
 - *Note: Mutect2 is optimized for WGS tumor tissue; results on cfDNA may show higher noise. Multi-sample mode is implemented but currently commented out.*
 
-**4. Murine / PDX de-mixing** (`rules/xenome.smk`, `rules/xenofilteR.smk`, `rules/murine_processing.smk`)
-Separates human and mouse reads from patient-derived xenograft (PDX) samples. Three approaches are included:
-- **Xenome** (k-mer based classification using gossamer)
-- **xengsort** (k-mer based, faster alternative)
-- **BBSplit** (alignment-based)
-- After classification, human reads proceed through the same UMI consensus pipeline as above
-- `scripts/separate_reads.py` — BAM-level read separator using chromosome name patterns and XA tags
+**4. Murine / PDX de-mixing** (xenome.smk` + `xenofilteR.smk`)
+
+For patient-derived xenograft (PDX) samples, removes mouse-derived reads using a two-track approach before standard cfDNA processing. The outputs of both tracks are merged to maximize human read recovery.
 
 ---
 
@@ -60,9 +56,12 @@ Install the following tools and ensure they are available on your `PATH`:
 
 For the murine pipeline only:
 | [xenome / gossamer](https://github.com/data61/gossamer) | k-mer classification |
-| [xengsort](https://gitlab.com/genomeinformatics/xengsort) | k-mer classification (alternative) |
-| [BBTools / BBSplit](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/) | Alignment-based classification |
-| [KMC](https://github.com/refresh-bio/KMC) | k-mer counting |
+**XenofilteR installation (R):**
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("XenofilteR")
+```
 | [seqtk](https://github.com/lh3/seqtk) | FASTQ to FASTA conversion |
 
 ---
@@ -184,3 +183,11 @@ snakemake --snakefile workflow/Snakefile \
 ## Output structure
 
 All outputs are written under `base_path/{study_id}/`:
+
+
+## Notes
+
+- All intermediate files are written under `base_path` as set in `common.smk`.
+- Log files for each rule are written alongside outputs in `logs/` subdirectories.
+- The pipeline assumes paired-end sequencing with UMIs in the read structure `5M2S+T`.
+- PDX module requires xenome to be installed separately; it is not available via conda.

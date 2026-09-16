@@ -292,11 +292,11 @@
 
 rule CollectDuplicateMetrics:
 	input:
-		QC_bam_fp
+		bam_fp
 	output:
-		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt"
+		base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt"
 	log:
-		base_path + "{study_id}/bam_processing/logs/CollectDuplicateMetrics/{patient_id}/{sampleid}.CollectDuplicateMetrics.log"
+		base_path + "{study_id}/merged_human/logs/CollectDuplicateMetrics/{patient_id}/{sampleid}.CollectDuplicateMetrics.log"
 	shell:
 		"""
 			java -jar /tgen_labs/barthel/software/picard_1.8.jar  CollectDuplicateMetrics \
@@ -306,12 +306,12 @@ rule CollectDuplicateMetrics:
 
 rule CollectAlignmentSummaryMetrics:
 	input:
-		bam = QC_bam_fp,
-		fasta = ref
+		bam = bam_fp,
+		fasta = human
 	output:
-		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt"
+		base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt"
 	log:
-		base_path + "{study_id}/bam_processing/logs/CollectAlignmentSummaryMetrics/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.log"
+		base_path + "{study_id}/merged_human/logs/CollectAlignmentSummaryMetrics/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.log"
 	resources:
 		mem_mb = 20000
 	params:
@@ -327,13 +327,13 @@ rule CollectAlignmentSummaryMetrics:
 
 rule fastqc:
 	input:
-		QC_bam_fp
+		bam_fp
 	output:
-		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.cons.mapped.sorted_fastqc.html"
+		base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}.cons.mapped.sorted_fastqc.html"
 	params:
-		dir = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}"
+		dir = base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}"
 	log:
-		base_path + "{study_id}/bam_processing/logs/fastqc/{patient_id}/{sampleid}_grouped_fastqc.log"
+		base_path + "{study_id}/merged_human/logs/fastqc/{patient_id}/{sampleid}_grouped_fastqc.log"
 	shell:
 		"""
 			#module add fastqc/0.11.8
@@ -347,12 +347,12 @@ rule fastqc:
 
 rule CollectInsertSizeMetrics:
 	input:
-		QC_bam_fp
+		bam_fp
 	output:
-		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.txt",
-		pdf = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf"
+		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_mm39_CollectInsertSizeMetrics.txt",
+		pdf = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_mm39_CollectInsertSizeMetrics.pdf"
 	log:
-		base_path + "{study_id}/bam_processing/logs/CollectInsertSizeMetrics/{patient_id}/{sampleid}_CollectInsertSizeMetrics.log"
+		base_path + "{study_id}/bam_processing/logs/CollectInsertSizeMetrics/{patient_id}/{sampleid}_hg38_CollectInsertSizeMetrics.log"
 	shell:
 		"""
 			java -jar /tgen_labs/barthel/software/picard_1.8.jar  CollectInsertSizeMetrics \
@@ -363,12 +363,12 @@ rule CollectInsertSizeMetrics:
 
 rule multiplemetrics:
 	input:
-		bam = QC_bam_fp,
-		fasta = ref
+		bam = bam_fp,
+		fasta = human
 	output:
-		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.alignment_summary_metrics.txt"
+		base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}.alignment_summary_metrics.txt"
 	log:
-		base_path + "{study_id}/bam_processing/logs/multiplemetrics/{patient_id}/{sampleid}.MultipleMetrics.log"
+		base_path + "{study_id}/merged_human/logs/multiplemetrics/{patient_id}/{sampleid}.MultipleMetrics.log"
 	message:
 		"Computing Multiple Metrics\n"
 		"Sample: {wildcards.sampleid}"
@@ -381,12 +381,12 @@ rule multiplemetrics:
 
 rule CollectWgsMetrics:
 	input:
-		bam = QC_bam_fp,
-		fasta = ref
+		bam = bam_fp,
+		fasta = human
 	output:
-		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt"
+		metrics = base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt"
 	log:
-		base_path + "{study_id}/bam_processing/logs/CollectWgsMetrics/{patient_id}/{sampleid}.CollectWgsMetrics.log"
+		base_path + "{study_id}/merged_human/logs/CollectWgsMetrics/{patient_id}/{sampleid}.CollectWgsMetrics.log"
 	shell:
 		"""
 			java -jar /tgen_labs/barthel/software/picard_1.8.jar  CollectWgsMetrics \
@@ -396,11 +396,11 @@ rule CollectWgsMetrics:
 
 rule CollectQualityYieldMetrics:
 	input:
-		QC_bam_fp
+		bam_fp
 	output:
-		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt"
+		base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt"
 	log:
-		base_path + "{study_id}/bam_processing/logs/CollectQualityYieldMetrics/{patient_id}/{sampleid}.CollectQualityYieldMetrics.log"
+		base_path + "{study_id}/merged_human/logs/CollectQualityYieldMetrics/{patient_id}/{sampleid}.CollectQualityYieldMetrics.log"
 	shell:
 		"""
 		java -jar /tgen_labs/barthel/software/picard_1.8.jar  CollectQualityYieldMetrics \
@@ -412,9 +412,9 @@ rule CollectQualityYieldMetrics:
 		
 # rule multiqc_report:
 # 	input:
-# 		base_path + "{study_id}/bam_processing/QC"
+# 		base_path + "{study_id}/merged_human/QC"
 # 	output:
-# 		base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html"
+# 		base_path + "{study_id}/merged_human/QC/{study_id}_WGS_report.html"
 # 	params:
 # 		yaml = "/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/multiqc.yaml"
 # 	shell:

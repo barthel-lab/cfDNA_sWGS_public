@@ -162,7 +162,7 @@
 ################### SINGLE SAMPLE
 rule wgs_mutect2:
    input:
-	   bam = base_path + "{study_id}/xenofilteR/{patient_id}/{sampleid}/Filtered_bams/{sampleid}_Filtered.bam",
+	   bam = bam_fp,
 	   fasta= human,
 	   germ = germline,
 	   pon = nPON,
@@ -210,7 +210,7 @@ rule wgs_LearnReadOrientationModel:
 
 rule wgs_GetPileupSummaries:
 	input:
-		bam = base_path + "{study_id}/xenofilteR/{patient_id}/{sampleid}/Filtered_bams/{sampleid}_Filtered.bam",
+		bam = bam_fp,
 		var = variant,
 		inter = intervals,
 		fasta = human

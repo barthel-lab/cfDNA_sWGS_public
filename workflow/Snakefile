@@ -2,28 +2,30 @@ include: "rules/common.smk"
 include: "rules/BQSR_bam.smk"
 include: "rules/ichorCNA.smk"
 include: "rules/variant_calling.smk"
-# include: "rules/murine_processing.smk"
-# include: "rules/xenome.smk"
 include: "rules/xenofilteR.smk"
+# include: "rules/murine_processing.smk"
+include: "rules/xenome.smk"
+
 
 rule all:
 	input:
 		############### FASTQ --> BAM files
 		# expand(base_path + "{study_id}/bam_processing/BQSR/{patient_id}/{sampleid}_BQSR_hg38.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# ############### BAM processing QC 
-		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_mm39_CollectInsertSizeMetrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_mm39_CollectInsertSizeMetrics.pdf", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/merged_human/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt",zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# ############## ICHORCNA PIPELINE
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{patient_id}_PBMC_PON_median.rds", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		# expand(base_path + "{study_id}/ichorcna_PON/{patient_id}/{sampleid}.cna.seg", zip, study_id = filtered_df["Study"].tolist(), patient_id = filtered_df["Patient"].tolist(), sampleid=filtered_df["Sample"].tolist()),
+		# expand(base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.cna.seg", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/gatk_cnv/ModelSegments/{patient_id}/{sampleid}.called.seg", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)
 		################ variant calling for WGS data - multisample
 		# expand(base_path +  "{study_id}/mutect2/{patient_id}/{sampleid}_anno.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
-		############### variant calling for WGS data - single sample
+		# ############### variant calling for WGS data - single sample
 		# expand(base_path + "{study_id}/GetPileupSummaries/{patient_id}/{sampleid}_GetPileupSummaries_table.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/LearnReadOrientationModel/{patient_id}/{sampleid}_read-orientation-model.tar.gz", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
 		# expand(base_path + "{study_id}/CalculateContamination/{patient_id}/{sampleid}_contamination.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
@@ -34,8 +36,25 @@ rule all:
 		# expand(base_path + "{study_id}/xenome/sort_consensus_reads/{patient_id}/{sampleid}.bam", zip, study_id = study_id, patient_id = patient_id, sampleid=all_samples),
 		# expand(base_path + "{study_id}/xenomapper2/align/{patient_id}/{sampleid}_mm10.bam", zip, study_id = study_id, patient_id = patient_id, sampleid=all_samples)
 		###############XENOME
-		# expand(base_path + "{study_id}/xenome/classify/{patient_id}/{sampleid}", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)
+		# expand(base_path + "{study_id}/xenome/classify/{patient_id}/{sampleid}", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/count_kmers/human_unique_kmers.kmc_suf", study_id = study_filter),
+		# expand(base_path + "{study_id}/count_kmers/{genomes}_unique_kmers_reset.kmc_suf", study_id = study_id, genomes = genomes),
+		# expand(base_path + "{study_id}/classified_reads/{patient_id}/{sampleid}.txt", study_id = study, patient_id = patient, sampleid=sample)
+		# expand(base_path + "{study_id}/bbsplit/{patient_id}/{sampleid}_hg38_1.fq", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)
+		######kmers pipelines
+		# expand(base_path + "{study_id}/count_kmers/human_unique_kmers.kmc_suf", study_id = study_filter),
+		# expand(base_path + "{study_id}/count_kmers/mouse_unique_kmers.kmc_suf", study_id = study_filter),
+		# expand(base_path + "{study_id}/count_kmers/human_mouse_shared_kmers.kmc_suf", study_id = study_filter),
+		expand(base_path + "{study_id}/databases/GBM43_intersect_reset.kmc_suf", study_id = study_id, genomes = genomes),
+		# expand(base_path + "{study_id}/databases/mouse_reset.kmc_suf", study_id = study_filter),
+		# expand(base_path + "{study_id}/databases/human_reset.kmc_suf", study_id = study_filter),
+		expand(base_path + "{study_id}/classified_reads/{patient_id}/{sampleid}.txt", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)
 		####### XENOFILTER
-		expand(base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}_filtered.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list, genomes = genomes),
-		# expand(base_path + "{study_id}/xenomapper2/align/{patient_id}/{sampleid}_{genomes}_sorted.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list, genomes = genomes),
-		# expand(base_path + "{study_id}/xenofilteR/{patient_id}/{sampleid}", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)
+		# expand(base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genome}_sorted.bam",zip,study_id=study_list * len(genomes),patient_id=patient_list * len(genomes),sampleid=sample_list * len(genomes),genome=genomes * len(sample_list))
+		# expand(base_path + "{study_id}/disambiguate/{patient_id}/{sampleid}", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# base_path + "Murine/ichorcna/GBM43_gDNA/GBM43_gDNA.cna.seg"
+		# expand(base_path + "{study_id}/merged_human/{patient_id}/{sampleid}_R2.fastq.gz", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/merged_human/{patient_id}/{sampleid}_R1.fastq.gz", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list),
+		# expand(base_path + "{study_id}/merged_human/sort_consensus_reads/{patient_id}/{sampleid}.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)
+		# "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.100kbp.interval_list"
+		# expand(base_path + "{study_id}/xenome/sort_consensus_reads/{patient_id}/{sampleid}.bam", zip, study_id = study_list, patient_id = patient_list, sampleid=sample_list)

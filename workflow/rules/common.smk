@@ -2,15 +2,19 @@ import itertools
 import random 
 import pandas as pd
 
-workdir: "/scratch/smankame/slurm/"  ##this is where all the slurm files will be created
-### this path is where all your files will be made
-base_path = "/scratch/smankame/"
-ichorcna_path = "/home/smankame/miniforge3/envs/ichorcna/bin/ichorCNA" 
-readCounter_path = "/home/smankame/miniforge3/envs/ichorcna/bin/readCounter"
-picard_path = "/tgen_labs/barthel/software"
+username = "wsmith" ###change based on user
+workdir: "/scratch/{username}/slurm/"  ##this is where all the slurm files will be created
 
-####references
+### this path is where all your files will be made
+base_path = "/scratch/{username}/"
+picard_path = "/tgen_labs/barthel/software/picard_1.8.jar"
+labs_dir ="/tgen_labs/barthel/projects/"
+
+####references for BQSR pipeline
 hg38 = "/tgen_labs/barthel/references/GRCh38/hg38_all_viral.fasta"
+ref = "/tgen_labs/barthel/projects/GBM_Cell_Culture/ref/hg38_mm39.fasta"
+
+####references for variant calling pipeline
 vcf = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.dbsnp138.vcf"
 hotspot_file = "/tgen_labs/barthel/references/GRCh38/lifted_hotspot_idh1_tert_grc37.vcf"
 germline = "/tgen_labs/barthel/projects/Portnow_COH/ref/af-only-gnomad.hg38.vcf.gz"
@@ -18,11 +22,20 @@ nPON = "/tgen_labs/barthel/projects/Portnow_COH/ref/xsomatic-hg38_1000g_pon.hg38
 variant = "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/gnomad/r3.0/gnomad.genomes.r3.0.sites.pass.ForMutectContamination.vcf.gz"
 intervals = "/tgen_labs/barthel/projects/Portnow_COH/ref/resources_broad_hg38_v0_wgs_calling_regions.hg38.interval_list"
 fun_lib = "/tgen_labs/barthel/references/GRCh38/funcotator_dataSources.v1.7.20200521s"
-ref = "/tgen_labs/barthel/projects/GBM_Cell_Culture/ref/hg38_mm39.fasta"
-mouse = "/tgen_labs/barthel/projects/GBM_Cell_Culture/ref/mm39.fa"
-human ="/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.fasta"
 
-QC_bam_fp=base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.bam"
+####references/filepaths for ichorCNA pipeline
+ichorcna_path = "/home/{username}/miniforge3/envs/ichorcna/bin/ichorCNA" 
+readCounter_path = "/home/{username}/miniforge3/envs/ichorcna/bin/readCounter"
+bam_file_path = base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}_hg38" ##connect the bam files created in BQSR pipeline straight to ichorCNA pipeline
+vcf_intervals = "/tgen_labs/barthel/references/GRCh38/1000G_phase1.snps.high_confidence.hg38.vcf.interval_list"
+gatk_intervals_1000bp = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.1000bp.interval_list"
+gatk_intervals_100kbp = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.100kbp.interval_list" ##custom interval list can be made using GATK PreprocessIntervals (rule preprocessIntervals in ichorCNA.smk needs human genome fasta file)
+hg38_dict = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.dict"
+
+####references for murine pipeline
+mouse = "" ##insert file path for mouse genome fasta file
+human = "" ##insert file path for human genome fasta file
+
 
 ### user makes a csv file where the first column is study name, the second column is sample name and the third and fourth columns are fastq_R1 and fastq_R2 files.
 ### study name (first column) will be used to name the folders and sample name (second column) will be used to name all subsequent files
@@ -42,28 +55,10 @@ study_list = filtered_sWGS_table['Study'].tolist()
 patient_list = filtered_sWGS_table['Patient'].tolist()
 sample_list = filtered_sWGS_table['Sample'].tolist()
 
-# print(sample_list)
+genomes = ["human","mouse"]
 
-genomes = ["hg38","mm10"]*len(all_samples)
 murine_subset = ["GBMMurine_0010", "GBMMurine_0011"]
 filtered_df = filtered_sWGS_table[filtered_sWGS_table["Patient"].isin(murine_subset)]
 
-# normals = filtered_df[filtered_df["Tumor"] == "Normal"]
 
-# def all_normals_filelist():
-#     """
-#     Collect all normal samples across all patients,
-#     write a filelist for ichorCNA, return the path.
-#     """
-    
-#     if normals.empty:
-#         raise ValueError("No normal samples found in the table!")
-
-#     filelist_path = f"{base_path}all_mouse_normals_PON_filelist.txt"
-
-#     with open(filelist_path, "w") as f:
-#         for _, row in normals.iterrows():
-#             wig_path = f"{base_path}{row['Study']}/ichorcna/{row['Patient']}/{row['Sample']}.wig"
-#             f.write(wig_path + "\n")
-
-#     return filelist_path
+# print(len(genomes))

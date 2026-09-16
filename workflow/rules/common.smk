@@ -26,7 +26,7 @@ fun_lib = "/tgen_labs/barthel/references/GRCh38/funcotator_dataSources.v1.7.2020
 ####references/filepaths for ichorCNA pipeline
 ichorcna_path = "/home/{username}/miniforge3/envs/ichorcna/bin/ichorCNA" 
 readCounter_path = "/home/{username}/miniforge3/envs/ichorcna/bin/readCounter"
-bam_file_path = base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}_hg38" ##connect the bam files created in BQSR pipeline straight to ichorCNA pipeline
+bam_file_path = base_path + "{study_id}/bam_processing/sort_consensus_reads/{patient_id}/{sampleid}.srt" ##connect the bam files created in BQSR pipeline straight to ichorCNA pipeline
 vcf_intervals = "/tgen_labs/barthel/references/GRCh38/1000G_phase1.snps.high_confidence.hg38.vcf.interval_list"
 gatk_intervals_1000bp = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.1000bp.interval_list"
 gatk_intervals_100kbp = "/tgen_labs/barthel/references/GRCh38/Homo_sapiens_assembly38.100kbp.interval_list" ##custom interval list can be made using GATK PreprocessIntervals (rule preprocessIntervals in ichorCNA.smk needs human genome fasta file)
@@ -39,7 +39,7 @@ human = "" ##insert file path for human genome fasta file
 
 ### user makes a csv file where the first column is study name, the second column is sample name and the third and fourth columns are fastq_R1 and fastq_R2 files.
 ### study name (first column) will be used to name the folders and sample name (second column) will be used to name all subsequent files
-sWGS_table = pd.read_csv("/tgen_labs/barthel/projects/GBM_Cell_Culture/scripts/cc_targeted_data_table.txt",sep='\t', header=None, names=["Study", "Patient", "Sample", "R1","R2", "OldName-R1", "OldName-R2", "Library_Type", "Tumor"])
+sWGS_table = pd.read_csv("/tgen_labs/barthel/projects/GBM_Cell_Culture/scripts/cc_targeted_data_table.txt",sep='\t', header=None, names=["Study", "Patient", "Sample", "R1","R2", "Library_Type", "Tumor"])
 sWGS_table.index = sWGS_table['Sample']
 
 ### if there are multiple studies within the csv table, patient filter will work with specific subsets of samples. Change the study filter value to the patient name. 

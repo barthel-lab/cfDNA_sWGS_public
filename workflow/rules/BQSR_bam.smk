@@ -418,7 +418,7 @@ rule multiqc_report:
 	output:
 		base_path + "{study_id}/bam_processing/QC/{study_id}_WGS_report.html"
 	params:
-		yaml = "/tgen_labs/barthel/software/github/barthel/cfDNA/sWGS/workflow/scripts/multiqc.yaml"
+		yaml = "../scripts/multiqc.yaml"
 	shell:
 		"""
 			cd {input} &&

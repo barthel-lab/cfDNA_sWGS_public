@@ -1,10 +1,10 @@
 rule wig_files:
 	input:
-		bam = bam_file_path + ".bam"
+		bam = bam_base_path + ".bam"
 	output:
 		wig =  base_path + "{study_id}/ichorcna/{patient_id}/{sampleid}.wig"
 	params:
-		index = bam_file_path + ".bam.bai",
+		index = bam_base_path + ".bam.bai",
 		window_size = 1000000,
 		quality = 20,
 		chromosomes = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY",
@@ -94,7 +94,7 @@ def get_patient_seg_files(wildcards):
     ]
     samples = patient_df['Sample'].tolist()
     return expand(
-        file_path + "/{study_id}/ichorcna/{patient_id}/{sampleid}.cna.seg",
+        base_path + "/{study_id}/ichorcna/{patient_id}/{sampleid}.cna.seg",
         study_id=wildcards.study_id,
         patient_id=wildcards.patient_id,
         sampleid=samples
@@ -104,26 +104,26 @@ rule arm_level_aneuploidy_per_patient:
     input:
         seg = get_patient_seg_files
     output:
-        summary = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/taylor_aneuploidy_summary.txt",
-        taylor  = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/taylor_aneuploidy.txt",
-        prop    = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/prop_aneuploidy.txt",
-        cnv_stats  = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/CNV_stats.txt",
-        seg_stats  = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/seg_stats.txt",
-        heatmap    = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/heatmap.pdf"
+        summary = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/taylor_aneuploidy_summary.txt",
+        taylor  = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/taylor_aneuploidy.txt",
+        prop    = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/prop_aneuploidy.txt",
+        cnv_stats  = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/CNV_stats.txt",
+        seg_stats  = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/seg_stats.txt",
+        heatmap    = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/heatmap.pdf"
     params:
-        output_dir = file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}"
+        output_dir = base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}"
     log:
-        file_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/aneuploidy.log"
+        base_path + "/{study_id}/arm_level_aneuploidy/{patient_id}/aneuploidy.log"
     threads: 1
     resources:
         mem_mb = 8000
     script:
-        "/tgen_labs/barthel/software/github/barthel/cfDNA_sWGS_public/workflow/scripts/aneuploidy_ichorcna.R"
+        "../scripts/aneuploidy_ichorcna.R"
 
 #### GATK pipeline (I've found this to overcall for cfDNA, it's more optimized for tumor samples)
 # rule addReadGroups:
 # 	input:
-# 		bam = bam_file_path
+# 		bam = bam_base_path
 # 	output:
 # 		bam = base_path + "{study_id}/gatk_cnv/readGroups/{patient_id}/{sampleid}_RG_hg38.bam"
 # 	log:

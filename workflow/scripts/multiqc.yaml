@@ -1,0 +1,19 @@
+---
+extra_data:
+  - file: "{study_id}/umi-fgbio/QC/{study_id}_rawWGSmetrics.mapped_grouped.txt"
+    name: "Quality Metrics Table"
+    type: "table"
+    description: "Quality metrics for the sequencing samples."
+    headers:
+      - Sample
+      - Q20_EQUIVALENT_YIELD
+      - Q20_BASES
+      - READ_LENGTH
+      - TOTAL_BASES
+      - PF_BASES
+      - PF_Q30_BASES
+      - PF_READS
+      - PF_Q20_BASES
+      - Q30_BASES
+      - TOTAL_READS
+      - PF_Q20_EQUIVALENT_YIELD

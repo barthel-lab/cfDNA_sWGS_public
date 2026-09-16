@@ -39,7 +39,7 @@ human = "" ##insert file path for human genome fasta file
 
 ### user makes a csv file where the first column is study name, the second column is sample name and the third and fourth columns are fastq_R1 and fastq_R2 files.
 ### study name (first column) will be used to name the folders and sample name (second column) will be used to name all subsequent files
-sWGS_table = pd.read_csv("/tgen_labs/barthel/projects/GBM_Cell_Culture/scripts/cc_targeted_data_table.txt",sep='\t', header=None, names=["Study", "Patient", "Sample", "R1","R2", "Library_Type", "Tumor"])
+sWGS_table = pd.read_csv("/tgen_labs/barthel/projects/cfDNA_sWGS_public/config/sWGS_data_table.txt",sep='\t', header=None, names=["Study", "Patient", "Sample", "R1","R2"])
 sWGS_table.index = sWGS_table['Sample']
 
 ### if there are multiple studies within the csv table, patient filter will work with specific subsets of samples. Change the study filter value to the patient name. 
@@ -56,9 +56,3 @@ patient_list = filtered_sWGS_table['Patient'].tolist()
 sample_list = filtered_sWGS_table['Sample'].tolist()
 
 genomes = ["human","mouse"]
-
-murine_subset = ["GBMMurine_0010", "GBMMurine_0011"]
-filtered_df = filtered_sWGS_table[filtered_sWGS_table["Patient"].isin(murine_subset)]
-
-
-# print(len(genomes))

@@ -206,7 +206,7 @@ rule sort_consensus_reads:
 # 	resources:
 # 		mem_mb = 50000
 # 	shell:
-# 		"""java -jar picard_path  AddOrReplaceReadGroups \
+# 		"""java -jar {params.picard_fp}  AddOrReplaceReadGroups \
 # 			-I {input} -O {output} \
 # 			-PL ILLUMINA -RGLB {params.paramID} --RGID {params.paramID} \
 # 			-RGPU {params.paramID} -RGSM {params.paramID} \
@@ -287,11 +287,13 @@ rule CollectDuplicateMetrics:
 		bam_file_path
 	output:
 		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}.CollectDuplicateMetrics.mapped._grouped.txt"
+	params:
+		picard_fp = picard_path
 	log:
 		base_path + "{study_id}/bam_processing/logs/CollectDuplicateMetrics/{patient_id}/{sampleid}.CollectDuplicateMetrics.log"
 	shell:
 		"""
-			java -jar picard_path  CollectDuplicateMetrics \
+			java -jar {params.picard_fp}  CollectDuplicateMetrics \
 				--INPUT {input} \
 				--METRICS_FILE {output} > {log} 2>&1
 		"""
@@ -302,15 +304,17 @@ rule CollectAlignmentSummaryMetrics:
 		fasta = human
 	output:
 		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.txt"
+	params:
+		picard_fp = picard_path
 	log:
 		base_path + "{study_id}/bam_processing/logs/CollectAlignmentSummaryMetrics/{patient_id}/{sampleid}_CollectAlignmentSummaryMetrics.log"
 	resources:
 		mem_mb = 20000
 	params:
-		path = picard_path
+		path = {params.picard_fp}
 	shell:
 		"""
-			java -jar picard_path  CollectAlignmentSummaryMetrics \
+			java -jar {params.picard_fp}  CollectAlignmentSummaryMetrics \
 				-R {input.fasta} \
 				-I {input.bam} \
 				-O {output} \
@@ -343,11 +347,13 @@ rule CollectInsertSizeMetrics:
 	output:
 		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.txt",
 		pdf = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_CollectInsertSizeMetrics.pdf"
+	params:
+		picard_fp = picard_path
 	log:
 		base_path + "{study_id}/bam_processing/logs/CollectInsertSizeMetrics/{patient_id}/{sampleid}_hg38_CollectInsertSizeMetrics.log"
 	shell:
 		"""
-			java -jar picard_path  CollectInsertSizeMetrics \
+			java -jar {params.picard_fp}  CollectInsertSizeMetrics \
 				I={input} O={output.metrics} \
 				H={output.pdf} M=0.5 \
 				> {log} 2>&1
@@ -377,11 +383,13 @@ rule CollectWgsMetrics:
 		fasta = human
 	output:
 		metrics = base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_collect_wgs_metrics.txt"
+	params:
+		picard_fp = picard_path
 	log:
 		base_path + "{study_id}/bam_processing/logs/CollectWgsMetrics/{patient_id}/{sampleid}.CollectWgsMetrics.log"
 	shell:
 		"""
-			java -jar picard_path  CollectWgsMetrics \
+			java -jar {params.picard_fp}  CollectWgsMetrics \
 				-I {input.bam} -O {output.metrics} \
 				-R {input.fasta} > {log} 2>&1
 		"""
@@ -391,11 +399,13 @@ rule CollectQualityYieldMetrics:
 		bam_file_path
 	output:
 		base_path + "{study_id}/bam_processing/QC/{patient_id}/{sampleid}_qual_yield_metrics.txt"
+	params:
+		picard_fp = picard_path
 	log:
 		base_path + "{study_id}/bam_processing/logs/CollectQualityYieldMetrics/{patient_id}/{sampleid}.CollectQualityYieldMetrics.log"
 	shell:
 		"""
-		java -jar picard_path  CollectQualityYieldMetrics \
+		java -jar {params.picard_fp}  CollectQualityYieldMetrics \
 			-I {input} \
 			--USE_ORIGINAL_QUALITIES true \
 			-O {output} \

@@ -1,109 +1,89 @@
-# rule RemoveEmptyReads:
-# 	input:
-# 		f1 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[5],
-# 		f2 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[6]
-# 	output:
-# 		p1 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
-# 		p2 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz",
-# 	log:
-# 		base_path + "{study_id}/xenofilteR/logs/ExtractUmis/{patient_id}/{sampleid}.cutadapt.log"
-# 	shell:
-# 		"""
-# 			cutadapt -m 7 -o {output.p1} -p {output.p2} {input.f1} {input.f2} &> {log}
-# 		"""
+rule RemoveEmptyReads:
+	input:
+		f1 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[5],
+		f2 = lambda wildcards: filtered_sWGS_table.loc[wildcards.sampleid].iloc[6]
+	output:
+		p1 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
+		p2 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz",
+	log:
+		base_path + "{study_id}/xenofilteR/logs/ExtractUmis/{patient_id}/{sampleid}.cutadapt.log"
+	shell:
+		"""
+			cutadapt -m 7 -o {output.p1} -p {output.p2} {input.f1} {input.f2} &> {log}
+		"""
 
-# rule align_bam_hg38:
-# 	input:
-# 		p1 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
-# 		p2 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz",
-# 		fasta = human
-# 	output:
-# 		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_hg38.bam"
-# 	threads: 16
-# 	resources:
-# 		mem_gb = 14
-# 	log:
-# 		base_path + "{study_id}/xenofilteR/logs/align_bam/{patient_id}/{sampleid}_hg38.log"
-# 	shell:
-# 		"""
-# 		bwa mem -t {threads} -Y -M {input.fasta} {input.p1} {input.p2} \
-# 		| samtools view -b - \
-# 		| samtools sort -n -@ {threads} -o {output.bam}
-# 		&> {log}
-# 		"""
-# rule align_bam_mm10:
-# 	input:
-# 		p1 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
-# 		p2 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz",
-# 		fasta = mouse
-# 	output:
-# 		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_mm10.bam"
-# 	threads: 16
-# 	resources:
-# 		mem_gb = 14
-# 	log:
-# 		base_path + "{study_id}/xenofilteR/logs/align_bam/{patient_id}/{sampleid}_mm10.log"
-# 	shell:
-# 		"""
-# 		bwa mem -t {threads} -Y -M {input.fasta} {input.p1} {input.p2} \
-# 		| samtools view -b - \
-# 		| samtools sort -n -@ {threads} -o {output.bam}
-# 		&> {log}
-# 		"""
+rule align_bam_hg38:
+	input:
+		p1 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
+		p2 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz",
+		fasta = human
+	output:
+		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_hg38.bam"
+	threads: 16
+	resources:
+		mem_gb = 14
+	log:
+		base_path + "{study_id}/xenofilteR/logs/align_bam/{patient_id}/{sampleid}_hg38.log"
+	shell:
+		"""
+		bwa mem -t {threads} -Y -M {input.fasta} {input.p1} {input.p2} \
+		| samtools view -b - \
+		| samtools sort -n -@ {threads} -o {output.bam}
+		&> {log}
+		"""
+rule align_bam_mm10:
+	input:
+		p1 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p1.fastq.gz",
+		p2 = base_path + "{study_id}/xenofilteR/ExtractUmis/{patient_id}/{sampleid}_processed.p2.fastq.gz",
+		fasta = mouse
+	output:
+		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_mm10.bam"
+	threads: 16
+	resources:
+		mem_gb = 14
+	log:
+		base_path + "{study_id}/xenofilteR/logs/align_bam/{patient_id}/{sampleid}_mm10.log"
+	shell:
+		"""
+		bwa mem -t {threads} -Y -M {input.fasta} {input.p1} {input.p2} \
+		| samtools view -b - \
+		| samtools sort -n -@ {threads} -o {output.bam}
+		&> {log}
+		"""
 
-# # rule filter_bam:
-# # 	input:
-# # 		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}.bam"
-# # 	output:
-# # 		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}_filtered.bam"
-# # 	threads: 8
-# # 	log:
-# # 		base_path + "{study_id}/xenofilteR/logs/filter_bam/{patient_id}/{sampleid}_{genomes}.log"
-# # 	shell:
-# # 		"""
-# # 		samtools view -u -b -F 2304 {input.bam} | \
-# # 		samtools sort -n -@ {threads} -o {output.bam} - &> {log}
-# # 		"""
+rule filter_bam:
+	input:
+		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}.bam"
+	output:
+		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}_filtered.bam"
+	threads: 8
+	log:
+		base_path + "{study_id}/xenofilteR/logs/filter_bam/{patient_id}/{sampleid}_{genomes}.log"
+	shell:
+		"""
+		samtools view -u -b -F 2304 {input.bam} | \
+		samtools sort -n -@ {threads} -o {output.bam} - &> {log}
+		"""
 
-# rule sort_bam:
-# 	input:
-# 		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}.bam"
-# 	output:
-# 		bam = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}_sorted.bam",
-# 		bai = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_{genomes}_sorted.bam.bai"
-# 	threads: 8
-# 	shell:
-# 		"""
-# 		samtools sort -@ {threads} -o {output.bam} {input.bam}
-# 		samtools index {output.bam}
-# 		"""
-
-# rule disambiguate:
-# 	input:
-# 		human = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_hg38_sorted.bam",
-# 		mouse = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_mm10_sorted.bam"
-# 	output:
-# 		out = (base_path + "{study_id}/disambiguate/{patient_id}/{sampleid}")
-# 	params:
-# 		sample = "{sampleid}",
-# 		#out = base_path + "{study_id}/xenofilteR/{patient_id}/{sampleid}/"
-# 	conda:
-# 		"/home/smankame/miniforge3/envs/xenofilter2"
-# 	resources:
-# 	   mem_mb = 250000
-# 	shell:
-# 		"""
-# 		ngs_disambiguate \
-# 			-s {params.sample} \
-# 			-o {output} \
-# 			{input.human} \
-# 			{input.mouse}
-# 		"""
-
+rule xenofilter:
+	input:
+		human = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_human_filtered.bam",
+		mouse = base_path + "{study_id}/xenofilteR/align/{patient_id}/{sampleid}_mouse_filtered.bam"
+	output:
+        filtered_bam = base_path + "{study_id}/xenofilteR/filtered/{patient_id}/{sampleid}_Filtered.bam"
+    params:
+        outdir = base_path + "{study_id}/xenofilteR/filtered/{patient_id}/"
+    threads: 4
+    resources:
+        mem_gb = 16
+    log:
+        base_path + "{study_id}/xenofilteR/logs/xenofilter/{patient_id}/{sampleid}.log"
+    script:
+        "../scripts/xenofilter.R"
 
 rule bam_to_fastq:
 	input:
-		base_path + "{study_id}/disambiguate/{patient_id}/{sampleid}/{sampleid}.disambiguatedSpeciesA.bam"
+		base_path + "{study_id}/xenofilteR/filtered/{patient_id}/{sampleid}_Filtered.bam"
 	output:
 		r1 = base_path + "{study_id}/disambiguate/{patient_id}/{sampleid}_R1.fastq",
 		r2 = base_path + "{study_id}/disambiguate/{patient_id}/{sampleid}_R2.fastq"

@@ -16,7 +16,7 @@ Generates consensus BAM files from raw FASTQ input using UMI-aware deduplication
 
 **2. ichorCNA copy number analysis** (`rules/ichorCNA.smk`)
 Estimates copy number alterations and tumor fraction from sWGS BAMs.
-- Generate read depth wiggle files (readCounter)
+- Generate read depth wig files (readCounter)
 - Build a panel of normals from matched PBMCs (optional)
 - Run ichorCNA
 - Arm-level aneuploidy summary per patient (`scripts/aneuploidy_ichorcna.R`)
